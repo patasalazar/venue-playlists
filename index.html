@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Discover live music programmed by London venues. Create Spotify playlists from venue lineups.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="hear them live">
+  <title>hear them live</title>
+  <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;hear them live&quot;,&quot;short_name&quot;:&quot;hear them live&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#333333&quot;,&quot;theme_color&quot;:&quot;#c8a4d9&quot;}">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #c8a4d9 0%, #ff8566 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #333333;
+      padding: 2rem 1rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-bottom: 3px solid;
+      border-image: linear-gradient(90deg, #c8a4d9 0%, #ff8566 100%) 1;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin: 0 0 0.5rem;
+      color: #fff;
+    }
+
+    .music-note {
+      background: linear-gradient(135deg, #c8a4d9 0%, #ff8566 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tagline {
+      color: #ccc;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .blurb {
+      color: #ddd;
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 1.6;
+      font-size: 0.9rem;
+    }
+
+    main {
+      flex: 1;
+      max-width: 1000px;
+      width: 100%;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .search-bar {
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .search-bar input:focus {
+      outline: none;
+      border-color: #ff8566;
+      box-shadow: 0 0 0 3px rgba(255, 133, 102, 0.2);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .control-group {
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .control-label {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+      display: block;
+      font-size: 0.9rem;
+    }
+
+    .toggle-all {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .toggle-all button {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      background: #f0f0f0;
+      color: #333;
+      transition: all 0.2s;
+    }
+
+    .toggle-all button.active {
+      background: #3bd6c6;
+      color: white;
+    }
+
+    .sort-select {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    section {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    section h2 {
+      margin-top: 0;
+      color: #333;
+      font-size: 1.5rem;
+      border-bottom: 3px solid;
+      border-image: linear-gradient(135deg, #c8a4d9 0%, #ff8566 100%) 1;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .go-button {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, #c8a4d9 0%, #ff8566 100%);
+      color: white;
+      transition: all 0.2s ease;
+      margin-top: 1rem;
+      letter-spacing: 0.5px;
+    }
+
+    .go-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(200, 164, 217, 0.4);
+    }
+
+    .go-button:active {
+      transform: translateY(0);
+    }
+
+    .filter-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .checkbox {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox input {
+      margin-right: 0.5rem;
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      accent-color: #89ecda;
+    }
+
+    .checkbox label {
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .date-range {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .date-range input {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .date-range span {
+      text-align: center;
+      color: #666;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-number {
+      display: block;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #c8a4d9;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      display: block;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .artists-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .artist-card {
+      background: #f8f8f8;
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid #ff8566;
+    }
+
+    .artist-name {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.25rem;
+    }
+
+    .artist-venue {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 0.25rem;
+    }
+
+    .artist-date {
+      font-size: 0.85rem;
+      color: #999;
+      margin-bottom: 0.5rem;
+    }
+
+    .artist-venue-link {
+      color: #ff8566;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .artist-venue-link:hover {
+      text-decoration: underline;
+    }
+
+    .calendar-view {
+      margin-top: 1rem;
+    }
+
+    .calendar-day {
+      background: #f8f8f8;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid #c8a4d9;
+    }
+
+    .calendar-date {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .calendar-events {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .empty {
+      color: #999;
+      font-style: italic;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .playlist-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+
+    .form-group input {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #ff8566;
+      box-shadow: 0 0 0 3px rgba(255, 133, 102, 0.2);
+    }
+
+    .button {
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: linear-gradient(135deg, #c8a4d9 0%, #ff8566 100%);
+      color: white;
+    }
+
+    .button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(200, 164, 217, 0.3);
+    }
+
+    .button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .button-secondary {
+      background: white;
+      color: #ff8566;
+      border: 2px solid #ff8566;
+    }
+
+    .button-secondary:hover {
+      background: #ff8566;
+      color: white;
+    }
+
+    .error {
+      background: #fee;
+      color: #c33;
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 4px solid #c33;
+      margin-bottom: 1rem;
+    }
+
+    .success {
+      background: #efe;
+      color: #3c3;
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 4px solid #3c3;
+      margin-bottom: 1rem;
+    }
+
+    .success p {
+      margin: 0 0 0.5rem;
+    }
+
+    .share-link {
+      background: #f0f0f0;
+      padding: 0.75rem;
+      border-radius: 4px;
+      word-break: break-all;
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    .copy-btn {
+      padding: 0.5rem 1rem;
+      background: #3c3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .copy-btn:hover {
+      background: #2a2;
+    }
+
+    footer {
+      background: rgba(255, 255, 255, 0.9);
+      text-align: center;
+      padding: 2rem;
+      margin-top: 2rem;
+      color: #666;
+    }
+
+    footer a {
+      color: #ff8566;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 1.75rem;
+      }
+
+      .blurb {
+        font-size: 0.85rem;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .artists-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .date-range {
+        grid-template-columns: 1fr;
+      }
+
+      .date-range span {
+        display: none;
+      }
+
+      section {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const VENUES = [
+      'Café Oto',
+      'Barbican',
+      'O2 Arena',
+      'O2 Academy Islington',
+      'O2 Academy Brixton',
+      'O2 Academy Hackney',
+      'O2 Academy Shepherds Bush',
+      'MOTH Club',
+      'Jazz Cafe',
+      "Ronnie Scott's",
+      'Coco',
+      'Fabric',
+      "St Paul's Cathedral",
+      'Southbank Centre',
+      'Royal Albert Hall',
+      'Stadium Shows'
+    ];
+
+    const VENUE_LINKS = {
+      'Café Oto': 'https://www.cafeoto.co.uk/events',
+      'Barbican': 'https://www.barbican.org.uk/whats-on',
+      'O2 Arena': 'https://www.theo2.co.uk/events',
+      'O2 Academy Islington': 'https://www.islingtonacademy.com',
+      'O2 Academy Brixton': 'https://www.brixton.co.uk',
+      'O2 Academy Hackney': 'https://www.hackney-academy.com',
+      'O2 Academy Shepherds Bush': 'https://www.shepherds-bush-empire.co.uk',
+      'MOTH Club': 'https://www.motclub.co.uk/events',
+      'Jazz Cafe': 'https://www.thejazzcafelondon.com',
+      "Ronnie Scott's": 'https://www.ronniescotts.co.uk/show-calendar',
+      'Coco': 'https://www.cocothelondon.com',
+      'Fabric': 'https://fabriclondon.com/programme',
+      "St Paul's Cathedral": 'https://www.stpauls.co.uk/visit/events',
+      'Southbank Centre': 'https://www.southbankcentre.org.uk/whats-on',
+      'Royal Albert Hall': 'https://www.royalalberthall.com/events',
+      'Stadium Shows': '#'
+    };
+
+    const GENRES = [
+      'experimental',
+      'jazz',
+      'classical',
+      'electronic',
+      'indie',
+      'folk',
+      'pop',
+      'rock',
+      'hip-hop',
+      'soul',
+      'r&b',
+      'world',
+      'ambient',
+      'post-punk',
+      'funk',
+      'blues',
+      'acoustic',
+      'techno',
+      'house',
+      'reggae',
+      'latin',
+      'opera',
+      'performance'
+    ];
+
+    const MOCK_EVENTS = [
+      { venue: 'Café Oto', artists: 'Hamid Drake / William Parker / Nicole Mitchell', genres: ['jazz', 'experimental'], date: '2026-08-31' },
+      { venue: 'Café Oto', artists: 'Fatboi Sharif / Cold Light / Retropxssy', genres: ['electronic', 'experimental'], date: '2026-09-01' },
+      { venue: 'Café Oto', artists: 'John Edwards / Mike Gennaro / Alex Ward', genres: ['jazz', 'experimental'], date: '2026-09-02' },
+      { venue: 'Barbican', artists: 'James Blake', genres: ['electronic', 'indie'], date: '2026-08-22' },
+      { venue: 'Barbican', artists: 'Nils Frahm', genres: ['classical', 'electronic'], date: '2026-09-15' },
+      { venue: 'Barbican', artists: 'Holly Herndon', genres: ['electronic', 'experimental'], date: '2026-09-18' },
+      { venue: 'Café Oto', artists: 'Tim Hecker', genres: ['electronic', 'experimental'], date: '2026-09-12' },
+      { venue: 'Café Oto', artists: 'Merzbow', genres: ['experimental', 'electronic'], date: '2026-08-10' },
+      { venue: 'Barbican', artists: 'Ryoji Ikeda', genres: ['experimental', 'classical'], date: '2026-08-08' },
+      { venue: 'Café Oto', artists: 'Grouper', genres: ['indie', 'experimental'], date: '2026-08-25' },
+      { venue: 'Café Oto', artists: 'Ólafur Arnalds', genres: ['classical', 'folk'], date: '2026-09-05' },
+      { venue: 'Barbican', artists: 'Mica Levi', genres: ['classical', 'experimental'], date: '2026-08-12' },
+      { venue: 'Jazz Cafe', artists: 'Kamasi Washington', genres: ['jazz', 'experimental'], date: '2026-09-03' },
+      { venue: "Ronnie Scott's", artists: 'Nubya Garcia', genres: ['jazz', 'electronic'], date: '2026-09-07' },
+      { venue: 'MOTH Club', artists: 'Objekt', genres: ['electronic', 'experimental'], date: '2026-08-28' },
+      { venue: 'Fabric', artists: 'Floating Points', genres: ['electronic', 'experimental'], date: '2026-09-10' },
+      { venue: 'O2 Academy Brixton', artists: 'Thundercat', genres: ['jazz', 'funk', 'electronic'], date: '2026-09-14' },
+      { venue: 'Royal Albert Hall', artists: 'Aurora Orchestra', genres: ['classical'], date: '2026-08-30' },
+      { venue: 'Southbank Centre', artists: 'Shabaka Hutchings', genres: ['jazz', 'experimental'], date: '2026-09-06' },
+      { venue: 'O2 Arena', artists: 'Jon Hopkins', genres: ['electronic', 'experimental'], date: '2026-09-20' },
+      { venue: 'Coco', artists: 'Verite / Bamboo Pigeon', genres: ['experimental', 'electronic'], date: '2026-08-29' },
+      { venue: "Ronnie Scott's", artists: 'Shabaka Hutchings Trio', genres: ['jazz', 'funk'], date: '2026-08-15' },
+      { venue: 'Jazz Cafe', artists: 'Sons of Kemet', genres: ['jazz', 'funk', 'experimental'], date: '2026-08-20' },
+      { venue: 'Barbican', artists: 'Oneohtrix Point Never', genres: ['electronic', 'experimental'], date: '2026-08-19' },
+      { venue: 'Fabric', artists: 'Actress', genres: ['electronic', 'experimental'], date: '2026-08-26' },
+    ];
+
+    function App() {
+      const [events] = useState(MOCK_EVENTS);
+      const [filteredArtists, setFilteredArtists] = useState([]);
+      const [selectedVenues, setSelectedVenues] = useState([]);
+      const [selectedGenres, setSelectedGenres] = useState([]);
+      const [dateFrom, setDateFrom] = useState('2026-08-01');
+      const [dateTo, setDateTo] = useState('2026-09-30');
+      const [searchTerm, setSearchTerm] = useState('');
+      const [sortBy, setSortBy] = useState('date');
+      const [playlistName, setPlaylistName] = useState('hear them live');
+      const [error, setError] = useState(null);
+      const [creating, setCreating] = useState(false);
+      const [playlistUrl, setPlaylistUrl] = useState(null);
+      const [showCalendar, setShowCalendar] = useState(false);
+
+      useEffect(() => {
+        applyFilters();
+      }, [events, selectedVenues, selectedGenres, dateFrom, dateTo, searchTerm, sortBy]);
+
+      const applyFilters = () => {
+        let filtered = events;
+
+        // If nothing selected in venues AND nothing selected in genres, show 0 results
+        if (selectedVenues.length === 0 && selectedGenres.length === 0) {
+          setFilteredArtists([]);
+          return;
+        }
+
+        // If venues are selected, filter by venues
+        if (selectedVenues.length > 0) {
+          filtered = filtered.filter(e => selectedVenues.includes(e.venue));
+        }
+
+        // If genres are selected, filter by genres
+        if (selectedGenres.length > 0) {
+          filtered = filtered.filter(e => e.genres.some(g => selectedGenres.includes(g)));
+        }
+
+        if (dateFrom || dateTo) {
+          filtered = filtered.filter(e => {
+            if (!e.date) return true;
+            if (dateFrom && e.date < dateFrom) return false;
+            if (dateTo && e.date > dateTo) return false;
+            return true;
+          });
+        }
+
+        const artists = new Set();
+        filtered.forEach(event => {
+          const parts = event.artists.split(' / ');
+          parts.forEach(p => artists.add(p.trim()));
+        });
+
+        let artistList = Array.from(artists);
+
+        if (searchTerm) {
+          artistList = artistList.filter(a => 
+            a.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+
+        if (sortBy === 'date') {
+          filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+          artistList = artistList.map(name => {
+            const event = filtered.find(e => e.artists.includes(name));
+            return { name, date: event?.date };
+          }).sort((a, b) => new Date(a.date) - new Date(b.date)).map(x => x.name);
+        } else if (sortBy === 'venue') {
+          artistList.sort((a, b) => {
+            const venueA = filtered.find(e => e.artists.includes(a))?.venue || '';
+            const venueB = filtered.find(e => e.artists.includes(b))?.venue || '';
+            return venueA.localeCompare(venueB);
+          });
+        } else if (sortBy === 'alpha') {
+          artistList.sort();
+        }
+
+        setFilteredArtists(artistList);
+      };
+
+      const handleVenueChange = (venue) => {
+        setSelectedVenues(prev =>
+          prev.includes(venue)
+            ? prev.filter(v => v !== venue)
+            : [...prev, venue]
+        );
+      };
+
+      const handleGenreChange = (genre) => {
+        setSelectedGenres(prev =>
+          prev.includes(genre)
+            ? prev.filter(g => g !== genre)
+            : [...prev, genre]
+        );
+      };
+
+      const toggleAllVenues = () => {
+        setSelectedVenues(selectedVenues.length === VENUES.length ? [] : VENUES);
+      };
+
+      const toggleAllGenres = () => {
+        setSelectedGenres(selectedGenres.length === GENRES.length ? [] : GENRES);
+      };
+
+      const getArtistEvent = (artistName) => {
+        return events.find(e => e.artists.includes(artistName));
+      };
+
+      const getCalendarEvents = () => {
+        const grouped = {};
+        events.forEach(event => {
+          if (!grouped[event.date]) grouped[event.date] = [];
+          grouped[event.date].push(event);
+        });
+        return grouped;
+      };
+
+      const createPlaylist = async () => {
+        if (!filteredArtists.length) {
+          setError('No artists match your filters');
+          return;
+        }
+
+        if (!playlistName.trim()) {
+          setError('Please enter a playlist name');
+          return;
+        }
+
+        setCreating(true);
+        setError(null);
+        setPlaylistUrl(null);
+
+        try {
+          const response = await fetch('/api/create-playlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              artists: filteredArtists,
+              playlistName: playlistName,
+              venues: selectedVenues,
+              genres: selectedGenres,
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.error) {
+            setError(data.error);
+          } else if (data.playlistUrl) {
+            setPlaylistUrl(data.playlistUrl);
+          }
+        } catch (err) {
+          setError('Failed to create playlist: ' + err.message);
+        }
+        setCreating(false);
+      };
+
+      const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        alert('Link copied!');
+      };
+
+      return (
+        <div className="container">
+          <header>
+            <h1><span className="music-note">🎵</span> hear them live</h1>
+            <p className="tagline">Discover the live music programmed by London venues</p>
+            <p className="blurb">Hear them live lets you discover the live music programmed by any venue in London so that you can listen to the artists that you might not know. There are some filters you can apply and at the end you create a playlist.....you will figure it out.</p>
+          </header>
+
+          <main>
+            <section>
+              <h2>Filters</h2>
+
+              <div className="filter-group">
+                <label className="filter-label">Venue</label>
+                <div className="toggle-all">
+                  <button className={selectedVenues.length === VENUES.length ? 'active' : ''} onClick={toggleAllVenues}>
+                    All
+                  </button>
+                  <button className={selectedVenues.length === 0 ? 'active' : ''} onClick={() => setSelectedVenues([])}>
+                    Clear all
+                  </button>
+                </div>
+                <div className="checkbox-group" style={{marginTop: '0.75rem'}}>
+                  {VENUES.map(venue => (
+                    <label key={venue} className="checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedVenues.includes(venue)}
+                        onChange={() => handleVenueChange(venue)}
+                      />
+                      <label>{venue}</label>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="filter-group">
+                <label className="filter-label">Genre</label>
+                <div className="toggle-all">
+                  <button className={selectedGenres.length === GENRES.length ? 'active' : ''} onClick={toggleAllGenres}>
+                    All
+                  </button>
+                  <button className={selectedGenres.length === 0 ? 'active' : ''} onClick={() => setSelectedGenres([])}>
+                    Clear all
+                  </button>
+                </div>
+                <div className="checkbox-group" style={{marginTop: '0.75rem'}}>
+                  {GENRES.map(genre => (
+                    <label key={genre} className="checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedGenres.includes(genre)}
+                        onChange={() => handleGenreChange(genre)}
+                      />
+                      <label>{genre}</label>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="filter-group">
+                <label className="filter-label">Date Range</label>
+                <div className="date-range">
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                  />
+                  <span>to</span>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <button 
+                className="go-button"
+                onClick={() => {
+                  if (filteredArtists.length > 0) {
+                    document.querySelector('.stats').scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                Go →
+              </button>
+            </section>
+
+            {/* Stats */}
+            <div className="stats">
+              <div className="stat">
+                <span className="stat-number">{events.filter(e => 
+                  (selectedVenues.length === 0 && selectedGenres.length === 0) ? false : 
+                  (selectedVenues.length > 0 && !selectedVenues.includes(e.venue)) ? false :
+                  (selectedGenres.length > 0 && !e.genres.some(g => selectedGenres.includes(g))) ? false :
+                  true
+                ).length}</span>
+                <span className="stat-label">Events Loaded</span>
+              </div>
+              <div className="stat">
+                <span className="stat-number">{filteredArtists.length}</span>
+                <span className="stat-label">Artists Matched</span>
+              </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="search-bar">
+              <input
+                type="text"
+                placeholder="🔍 Search artists or venues..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* Controls */}
+            <div className="controls">
+              <div className="control-group">
+                <label className="control-label">Sort by:</label>
+                <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                  <option value="date">Date</option>
+                  <option value="venue">Venue</option>
+                  <option value="alpha">Alphabetically</option>
+                </select>
+              </div>
+              <div className="control-group">
+                <label className="control-label">View:</label>
+                <div className="toggle-all">
+                  <button className={!showCalendar ? 'active' : ''} onClick={() => setShowCalendar(false)}>Artists</button>
+                  <button className={showCalendar ? 'active' : ''} onClick={() => setShowCalendar(true)}>Calendar</button>
+                </div>
+              </div>
+            </div>
+
+            {!showCalendar && (
+              <section>
+                <h2>Artists ({filteredArtists.length})</h2>
+                
+                {filteredArtists.length > 0 ? (
+                  <div className="artists-grid">
+                    {filteredArtists.map((artist, idx) => {
+                      const event = getArtistEvent(artist);
+                      return (
+                        <div key={idx} className="artist-card">
+                          <div className="artist-name">{artist}</div>
+                          {event && (
+                            <>
+                              <div className="artist-date">{new Date(event.date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}</div>
+                              <div className="artist-venue">
+                                <a href={VENUE_LINKS[event.venue]} target="_blank" rel="noopener noreferrer" className="artist-venue-link">
+                                  {event.venue} →
+                                </a>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="empty">No artists match your filters</p>
+                )}
+              </section>
+            )}
+
+            {/* Calendar View */}
+            {showCalendar && (
+              <section>
+                <h2>Events Calendar</h2>
+                <div className="calendar-view">
+                  {Object.keys(getCalendarEvents()).sort().map(date => (
+                    <div key={date} className="calendar-day">
+                      <div className="calendar-date">{new Date(date).toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+                      <div className="calendar-events">
+                        {getCalendarEvents()[date].map((event, idx) => (
+                          <div key={idx} style={{marginBottom: '0.5rem'}}>
+                            <strong>{event.artists}</strong> @ <a href={VENUE_LINKS[event.venue]} target="_blank" rel="noopener noreferrer" className="artist-venue-link">{event.venue}</a>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Playlist Creation */}
+            <section>
+              <h2>Create Playlist</h2>
+              
+              <p style={{color: "#666", marginBottom: "1.5rem", lineHeight: "1.6"}}>
+                Give your playlist a name that you'll recognise. Once you click the button, a playlist will automatically be created in your Spotify account with all the artists from your filtered selection. You can then listen on Spotify, share it, or add your own tracks.
+              </p>
+              
+              <div className="playlist-form">
+                <div className="form-group">
+                  <label>Playlist Name</label>
+                  <input
+                    type="text"
+                    value={playlistName}
+                    onChange={(e) => setPlaylistName(e.target.value)}
+                    placeholder="e.g., hear them live: Jazz Discoveries"
+                  />
+                </div>
+
+                {error && <div className="error">{error}</div>}
+
+                {playlistUrl && (
+                  <div className="success">
+                    <p>✓ Playlist created successfully!</p>
+                    <div className="share-link">{playlistUrl}</div>
+                    <div style={{display: 'flex', gap: '0.5rem'}}>
+                      <a href={playlistUrl} target="_blank" rel="noopener noreferrer" className="button">Open in Spotify</a>
+                      <button className="copy-btn" onClick={() => copyToClipboard(playlistUrl)}>Copy Link</button>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={createPlaylist}
+                  disabled={creating || !filteredArtists.length}
+                  className="button"
+                >
+                  {creating ? 'Creating...' : `Create Playlist (${filteredArtists.length} artists)`}
+                </button>
+              </div>
+            </section>
+          </main>
+
+          <footer>
+            <p>
+              hear them live • powered by 
+              <a href="https://developer.spotify.com" target="_blank" rel="noopener noreferrer"> Spotify</a>
+            </p>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+
+    // PWA Service Worker registration
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('data:application/javascript,self.addEventListener("fetch",e=>e.respondWith(fetch(e.request)))');
+    }
+  </script>
+</body>
+</html>
