@@ -1,13 +1,8 @@
 [build]
-  command = "echo 'Static site - no build needed'"
+  functions = "netlify/functions"
   publish = "."
 
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
-
-[context.production.environment]
-  SPOTIFY_CLIENT_ID = ""
-  SPOTIFY_CLIENT_SECRET = ""
-  SPOTIFY_USER_ID = ""
